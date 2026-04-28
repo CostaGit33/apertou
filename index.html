@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Apertou Gravou - Arena Online</title>
+    <title>Apertou Gravou - Arena Jaguar</title>
 
     <style>
         :root {
@@ -59,7 +59,6 @@
         }
 
         #saveBtn:hover { transform: scale(1.01); background: #00db72; }
-        #saveBtn:active { transform: scale(0.98); }
         #saveBtn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; background: #333; color: #666; }
 
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
@@ -98,10 +97,8 @@
             text-decoration: none;
             transition: 0.2s;
         }
-        .btn-view { background: #222; color: #fff; }
-        .btn-view:hover { background: #333; }
-        .btn-r2 { background: #0070f3; color: #fff; }
-        .btn-r2:hover { background: #0060d0; }
+        .btn-view { background: #0070f3; color: #fff; }
+        .btn-view:hover { background: #0060d0; }
 
         footer { padding: 40px 20px; text-align: center; color: #444; font-size: 0.75rem; }
     </style>
@@ -118,13 +115,12 @@
     <div class="grid">
         <div class="card">
             <div class="title">Controle de Gravação</div>
-            
             <button id="saveBtn" onclick="gravar()">⚽ GRAVAR LANCE</button>
 
             <div class="stats">
                 <div class="box">
-                    <small>BUFFER ATIVO</small>
-                    <strong id="buffer">--</strong>
+                    <small>STATUS R2</small>
+                    <strong id="cloud-status">OK</strong>
                 </div>
                 <div class="box">
                     <small>TOTAL CLIPS</small>
@@ -133,127 +129,125 @@
             </div>
             
             <p style="margin-top: 20px; color: #555; font-size: 11px;">
-                * O sistema processa os últimos segundos do buffer circular, aplica a logo e sincroniza com a Cloud R2.
+                * Os vídeos são processados localmente e enviados para o Cloudflare R2 automaticamente.
             </p>
         </div>
 
         <div class="card">
             <div class="title">Últimos Replays</div>
             <div class="list" id="clips">
-                <div style="text-align: center; padding: 20px; color: #444;">Buscando replays...</div>
+                <div style="text-align: center; padding: 20px; color: #444;">Buscando replays na nuvem...</div>
             </div>
         </div>
     </div>
 </main>
 
 <footer>
-    Arena Jaguar • Sistema Profissional de Replays • R2 Cloud Ativo
+    Arena Jaguar • videos.semdominio.online • R2 Storage
 </footer>
 
 <script>
-    /**
-     * Ajuste automático da API: 
-     * Se você acessar pelo celular, ele tentará usar o IP do notebook. 
-     * Caso contrário, usa localhost. Substitua o IP abaixo pelo do seu notebook.
-     */
+    // --- CONFIGURAÇÕES CRÍTICAS ---
+    // URL Pública que aparece na sua captura de tela do R2
+    const R2_PUBLIC_URL = "https://pub-172de93c1f6b4da4bd4279b3ee4148c8.r2.dev";
+    
+    // IP do seu notebook para o comando de gravação (Trigger)
     const IP_NOTEBOOK = "192.168.1.105"; 
-    const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" 
-                ? "http://localhost:8080" 
-                : `http://${IP_NOTEBOOK}:8080`;
+    const API_LOCAL = `http://${IP_NOTEBOOK}:8080`;
 
-    async function statusLoad() {
-        const statusEl = document.getElementById("status");
-        try {
-            const r = await fetch(`${API}/api/status`, { signal: AbortSignal.timeout(3000) });
-            if(!r.ok) throw new Error();
-            const j = await r.json();
-
-            statusEl.innerHTML = '<span class="online">● SISTEMA ONLINE</span>';
-            document.getElementById("buffer").innerText = (j.buffer_seconds || 0) + "s";
-        } catch (e) {
-            statusEl.innerHTML = '<span class="offline">● SISTEMA OFFLINE</span>';
-        }
-    }
-
+    // 1. Carrega os vídeos direto do R2 (clips.json)
     async function clipsLoad() {
         const listEl = document.getElementById("clips");
         try {
-            const r = await fetch(`${API}/api/clips`);
+            // Buscamos o arquivo JSON que o main.py envia para a nuvem
+            const r = await fetch(`${R2_PUBLIC_URL}/clips.json?t=${Date.now()}`);
+            if(!r.ok) throw new Error();
+            
             const list = await r.json();
-
             document.getElementById("total").innerText = list.length;
             
             if (list.length === 0) {
-                listEl.innerHTML = "<div style='color:#444; text-align:center; padding:20px;'>Nenhum replay gerado ainda.</div>";
+                listEl.innerHTML = "<div style='color:#444; text-align:center; padding:20px;'>Nenhum replay na nuvem.</div>";
                 return;
             }
 
             const html = list.map(item => `
                 <div class="item">
                     <div class="item-info">
-                        <strong>${item.created_at || 'Agora'}</strong>
-                        <span>${item.size_mb ? item.size_mb + ' MB' : 'Processado'}</span>
+                        <strong>LANCE ${item.time}</strong>
+                        <span>Arena Jaguar</span>
                     </div>
                     <div class="actions">
-                        <button class="btn-mini btn-view" onclick="verClip('${item.url}')">VER</button>
-                        <a href="${item.r2_url || item.url}" target="_blank" class="btn-mini btn-r2">CLOUD</a>
+                        <a href="${item.url}" target="_blank" class="btn-mini btn-view">ASSISTIR REPLAY</a>
                     </div>
                 </div>
             `).join('');
 
             listEl.innerHTML = html;
+            document.getElementById("cloud-status").innerText = "ONLINE";
+            document.getElementById("cloud-status").style.color = "var(--primary)";
         } catch (e) {
-            console.error("Erro ao carregar clips", e);
+            listEl.innerHTML = "<div style='color:#444; text-align:center; padding:20px;'>Aguardando primeiro clipe...</div>";
+            document.getElementById("cloud-status").innerText = "EMPTY";
         }
     }
 
+    // 2. Verifica se o notebook (main.py) está ligado
+    async function statusLoad() {
+        const statusEl = document.getElementById("status");
+        try {
+            // Tentativa de conexão com o notebook local
+            const r = await fetch(`${API_LOCAL}/api/status`, { signal: AbortSignal.timeout(2000) });
+            if(r.ok) {
+                statusEl.innerHTML = '<span class="online">● ARENA CONECTADA</span>';
+            } else {
+                throw new Error();
+            }
+        } catch (e) {
+            statusEl.innerHTML = '<span class="offline">● NOTEBOOK OFFLINE</span>';
+        }
+    }
+
+    // 3. Envia o comando de gravar para o notebook
     async function gravar() {
         const btn = document.getElementById("saveBtn");
-        const originalText = btn.innerText;
-        
         btn.disabled = true;
         btn.innerText = "⏳ PROCESSANDO...";
         btn.style.background = "#333";
 
         try {
-            const r = await fetch(`${API}/api/trigger`, { method: "POST" });
+            const r = await fetch(`${API_LOCAL}/api/trigger`, { method: "POST" });
             const j = await r.json();
 
             if (j.success) {
-                btn.innerText = "✅ SUCESSO!";
+                btn.innerText = "✅ GRAVADO COM SUCESSO!";
                 btn.style.background = "var(--primary)";
-                btn.style.color = "#000";
-                setTimeout(clipsLoad, 1500);
+                // Aguarda 5 segundos para o upload terminar e atualiza a lista
+                setTimeout(clipsLoad, 5000);
             } else {
                 throw new Error();
             }
         } catch (e) {
-            btn.innerText = "❌ ERRO NA CONEXÃO";
+            btn.innerText = "❌ ERRO DE CONEXÃO";
             btn.style.background = "var(--danger)";
-            btn.style.color = "#fff";
+            alert("O site não conseguiu falar com o notebook no IP " + IP_NOTEBOOK + ". Verifique se o main.py está aberto e se você permitiu 'Conteúdo Inseguro' no navegador.");
         }
 
         setTimeout(() => {
             btn.disabled = false;
-            btn.innerText = originalText;
+            btn.innerText = "⚽ GRAVAR LANCE";
             btn.style.background = "";
-            btn.style.color = "";
         }, 4000);
-    }
-
-    function verClip(url) {
-        // Se a URL for relativa, anexa o endereço da API
-        const finalUrl = url.startsWith('http') ? url : `${API}${url}`;
-        window.open(finalUrl, "_blank");
     }
 
     // Inicialização
     statusLoad();
     clipsLoad();
 
-    // Loops de atualização
+    // Atualiza a lista da nuvem a cada 15 segundos
+    setInterval(clipsLoad, 15000);
+    // Atualiza status do notebook a cada 5 segundos
     setInterval(statusLoad, 5000);
-    setInterval(clipsLoad, 10000);
 </script>
 
 </body>
