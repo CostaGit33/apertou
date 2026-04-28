@@ -336,7 +336,9 @@
 
     <script>
         const STORAGE_KEY = "apertou_gravou_local_api";
-        const PUBLIC_INDEX_URL = `${window.location.origin}/clips.json`;
+        const PUBLIC_INDEX_STORAGE_KEY = "apertou_gravou_public_index_url";
+        const PUBLIC_INDEX_RETRY_MS = 120000;
+        const DEFAULT_PUBLIC_INDEX_URL = `${window.location.origin}/clips.json`;
 
         const elements = {
             arenaLabel: document.getElementById("arenaLabel"),
@@ -353,6 +355,8 @@
         };
 
         let localApiBase = resolveInitialApiBase();
+        let publicIndexUrl = resolvePublicIndexUrl();
+        let nextPublicIndexRetryAt = 0;
 
         function resolveInitialApiBase() {
             const fromQuery = new URLSearchParams(window.location.search).get("api");
@@ -368,6 +372,14 @@
                 return window.location.origin.replace(/\/$/, "");
             }
             return "";
+        }
+
+        function resolvePublicIndexUrl() {
+            const fromQuery = new URLSearchParams(window.location.search).get("publicIndex");
+            const fromStorage = window.localStorage.getItem(PUBLIC_INDEX_STORAGE_KEY);
+            const value = fromQuery || fromStorage || DEFAULT_PUBLIC_INDEX_URL;
+            window.localStorage.setItem(PUBLIC_INDEX_STORAGE_KEY, value);
+            return value.replace(/\/$/, "");
         }
 
         function setMessage(text, kind = "") {
@@ -403,7 +415,7 @@
 
         async function refreshStatus() {
             elements.apiInput.value = localApiBase;
-            elements.publicHost.textContent = new URL(PUBLIC_INDEX_URL).host;
+            elements.publicHost.textContent = new URL(publicIndexUrl).host;
 
             if (!localApiBase) {
                 setStatus("Configure a API local para habilitar a gravação", false);
@@ -454,20 +466,41 @@
             }).join("");
         }
 
-        async function refreshClips() {
+        async function tryPublicClips() {
+            if (Date.now() < nextPublicIndexRetryAt) {
+                throw new Error("PUBLIC_INDEX_COOLDOWN");
+            }
+
             try {
-                const clips = await fetchJson(PUBLIC_INDEX_URL, { cache: "no-store" });
+                const clips = await fetchJson(publicIndexUrl, { cache: "no-store" });
+                nextPublicIndexRetryAt = 0;
+                return clips;
+            } catch (error) {
+                if (String(error.message).includes("404")) {
+                    nextPublicIndexRetryAt = Date.now() + PUBLIC_INDEX_RETRY_MS;
+                }
+                throw error;
+            }
+        }
+
+        async function refreshClips() {
+            if (localApiBase) {
+                try {
+                    const localClips = await fetchJson(`${localApiBase}/api/clips`, { cache: "no-store" });
+                    renderClips(localClips);
+                    return;
+                } catch (localError) {
+                    // seguimos para o catálogo público como fallback
+                }
+            }
+
+            try {
+                const clips = await tryPublicClips();
                 renderClips(clips);
             } catch (error) {
-                if (localApiBase) {
-                    try {
-                        const localClips = await fetchJson(`${localApiBase}/api/clips`, { cache: "no-store" });
-                        renderClips(localClips);
-                        return;
-                    } catch (localError) {
-                        elements.clips.innerHTML = "<div class='helper'>Não foi possível carregar os replays agora.</div>";
-                        return;
-                    }
+                if (String(error.message) === "PUBLIC_INDEX_COOLDOWN") {
+                    elements.clips.innerHTML = "<div class='helper'>O catálogo público está indisponível agora. A lista volta a tentar em instantes.</div>";
+                    return;
                 }
                 elements.clips.innerHTML = "<div class='helper'>Não foi possível carregar os replays agora.</div>";
             }
