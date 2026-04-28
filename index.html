@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Apertou Gravou - Arquivo & R2</title>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0a0a0a; color: #fff; }
+
+        header {
+            padding: 18px;
+            background: #111;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #222;
+        }
+
+        .logo { font-size: 20px; font-weight: 900; color: #00ff84; letter-spacing: 1px; }
+        #status { font-size: 13px; font-weight: bold; }
+        .online { color: #00ff84; }
+        .offline { color: #ff4444; }
+
+        main { max-width: 1000px; margin: auto; padding: 20px; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media(max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+
+        .card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 20px; }
+        .title { font-size: 16px; font-weight: 800; margin-bottom: 15px; color: #aaa; text-transform: uppercase; }
+
+        /* Estilo do Botão Principal */
+        #saveBtn {
+            width: 100%;
+            padding: 40px 20px;
+            border: none;
+            border-radius: 14px;
+            font-size: 22px;
+            font-weight: 900;
+            background: #00ff84;
+            color: #000;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 20px rgba(0, 255, 132, 0.2);
+        }
+
+        #saveBtn:hover { transform: scale(1.02); background: #00db72; }
+        #saveBtn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
+        .box { background: #0d0d0d; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #1a1a1a; }
+        .box small { display: block; color: #666; font-size: 11px; margin-bottom: 4px; }
+        .box strong { font-size: 20px; color: #00ff84; }
+
+        /* Listagem */
+        .list { display: grid; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
+        .list::-webkit-scrollbar { width: 5px; }
+        .list::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        .item {
+            background: #0d0d0d;
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #1a1a1a;
+        }
+
+        .item-info strong { display: block; font-size: 14px; }
+        .item-info span { font-size: 12px; color: #555; }
+
+        .actions { display: flex; gap: 8px; }
+        .btn-mini {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn-view { background: #222; color: #fff; }
+        .btn-r2 { background: #0070f3; color: #fff; }
+
+        footer { padding: 30px; text-align: center; color: #444; font-size: 12px; }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">APERTOU GRAVOU <small style="font-size: 10px; color: #555;">v5 FILE+R2</small></div>
+    <div id="status">● VERIFICANDO...</div>
+</header>
+
+<main>
+    <div class="grid">
+        
+        <div class="card">
+            <div class="title">Controle de Gravação</div>
+            
+            <button id="saveBtn" onclick="gravar()">
+                ⚽ GRAVAR LANCE
+            </button>
+
+            <div class="stats">
+                <div class="box">
+                    <small>BUFFER ATIVO</small>
+                    <strong id="buffer">0s</strong>
+                </div>
+                <div class="box">
+                    <small>TOTAL CLIPS</small>
+                    <strong id="total">0</strong>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; color: #555; font-size: 12px; line-height: 1.6;">
+                * O sistema mantém um buffer circular na memória. Ao apertar o botão, os últimos segundos são processados, selados com logo e enviados para a nuvem.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="title">Últimos Replays</div>
+            <div class="list" id="clips">
+                Carregando histórico...
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<footer>
+    Sistema Profissional de Captura de Replays • R2 Cloud Storage Configurado
+</footer>
+
+<script>
+    const API = "http://localhost:8080"; // Ajuste para o IP do servidor se necessário
+
+    async function statusLoad() {
+        try {
+            const r = await fetch(`${API}/api/status`);
+            if(!r.ok) throw new Error();
+            const j = await r.json();
+
+            document.getElementById("status").innerHTML = '<span class="online">● SISTEMA ONLINE</span>';
+            document.getElementById("buffer").innerText = (j.buffer_seconds || 0) + "s";
+        } catch (e) {
+            document.getElementById("status").innerHTML = '<span class="offline">● SISTEMA OFFLINE</span>';
+        }
+    }
+
+    async function clipsLoad() {
+        try {
+            const r = await fetch(`${API}/api/clips`);
+            const list = await r.json();
+
+            document.getElementById("total").innerText = list.length;
+            let html = "";
+
+            if (list.length === 0) {
+                html = "<div style='color:#444; text-align:center; padding:20px;'>Nenhum replay gerado ainda.</div>";
+            }
+
+            list.forEach(item => {
+                html += `
+                <div class="item">
+                    <div class="item-info">
+                        <strong>${item.created_at}</strong>
+                        <span>${item.size_mb} MB</span>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-mini btn-view" onclick="verClip('${item.url}')">ASSISTIR</button>
+                        <a href="${item.url}" target="_blank" class="btn-mini btn-r2">CLOUD</a>
+                    </div>
+                </div>`;
+            });
+
+            document.getElementById("clips").innerHTML = html;
+        } catch (e) {
+            console.error("Erro ao carregar clips", e);
+        }
+    }
+
+    async function gravar() {
+        const btn = document.getElementById("saveBtn");
+        btn.disabled = true;
+        btn.innerText = "⏳ PROCESSANDO...";
+        btn.style.background = "#444";
+
+        try {
+            const r = await fetch(`${API}/api/trigger`, { method: "POST" });
+            const j = await r.json();
+
+            if (j.success) {
+                btn.innerText = "✅ SUCESSO!";
+                btn.style.background = "#00ff84";
+                clipsLoad();
+            } else {
+                btn.innerText = "❌ ERRO";
+                btn.style.background = "#ff4444";
+            }
+        } catch (e) {
+            btn.innerText = "❌ ERRO DE REDE";
+            btn.style.background = "#ff4444";
+        }
+
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.innerText = "⚽ GRAVAR LANCE";
+            btn.style.background = "#00ff84";
+        }, 3000);
+    }
+
+    function verClip(url) {
+        // Abre o clipe local ou do R2 em uma nova aba
+        window.open(API + url, "_blank");
+    }
+
+    // Inicialização
+    statusLoad();
+    clipsLoad();
+
+    // Loops de atualização
+    setInterval(statusLoad, 3000);
+    setInterval(clipsLoad, 10000); // Atualiza lista a cada 10s
+</script>
+
+</body>
+</html>
