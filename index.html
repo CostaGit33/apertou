@@ -147,106 +147,75 @@
 </footer>
 
 <script>
-    // --- CONFIGURAÇÕES CRÍTICAS ---
-    // URL Pública que aparece na sua captura de tela do R2
-    const R2_PUBLIC_URL = "https://pub-172de93c1f6b4da4bd4279b3ee4148c8.r2.dev";
+    // Agora apontando para o IP real da sua VPS que aparece no seu DNS
+    const API = "http://76.13.68.129:8080"; 
     
-    // IP do seu notebook para o comando de gravação (Trigger)
-    const IP_NOTEBOOK = "192.168.1.105"; 
-    const API_LOCAL = `http://${IP_NOTEBOOK}:8080`;
+    // URL Pública do seu R2 (confirmada na sua captura de tela do bucket)
+    const R2_PUBLIC_URL = "https://pub-172de93c1f6b4da4bd4279b3ee4148c8.r2.dev";
 
-    // 1. Carrega os vídeos direto do R2 (clips.json)
-    async function clipsLoad() {
-        const listEl = document.getElementById("clips");
+    async function statusLoad() {
         try {
-            // Buscamos o arquivo JSON que o main.py envia para a nuvem
+            const r = await fetch(`${API}/api/status`);
+            const j = await r.json();
+            document.getElementById("status").innerHTML = '<span class="online">● SISTEMA ONLINE</span>';
+            document.getElementById("buffer").innerText = (j.buffer_seconds || 0) + "s";
+        } catch (e) {
+            document.getElementById("status").innerHTML = '<span class="offline">● SISTEMA OFFLINE</span>';
+        }
+    }
+
+    async function clipsLoad() {
+        try {
+            // Buscando o índice diretamente do R2 para evitar sobrecarga na VPS
             const r = await fetch(`${R2_PUBLIC_URL}/clips.json?t=${Date.now()}`);
             if(!r.ok) throw new Error();
-            
             const list = await r.json();
-            document.getElementById("total").innerText = list.length;
             
-            if (list.length === 0) {
-                listEl.innerHTML = "<div style='color:#444; text-align:center; padding:20px;'>Nenhum replay na nuvem.</div>";
-                return;
-            }
+            document.getElementById("total").innerText = list.length;
+            let html = "";
 
-            const html = list.map(item => `
+            list.forEach(item => {
+                html += `
                 <div class="item">
                     <div class="item-info">
-                        <strong>LANCE ${item.time}</strong>
+                        <strong>LANCE - ${item.time}</strong>
                         <span>Arena Jaguar</span>
                     </div>
                     <div class="actions">
-                        <a href="${item.url}" target="_blank" class="btn-mini btn-view">ASSISTIR REPLAY</a>
+                        <a href="${item.url}" target="_blank" class="btn-mini btn-r2">ASSISTIR REPLAY</a>
                     </div>
-                </div>
-            `).join('');
-
-            listEl.innerHTML = html;
-            document.getElementById("cloud-status").innerText = "ONLINE";
-            document.getElementById("cloud-status").style.color = "var(--primary)";
-        } catch (e) {
-            listEl.innerHTML = "<div style='color:#444; text-align:center; padding:20px;'>Aguardando primeiro clipe...</div>";
-            document.getElementById("cloud-status").innerText = "EMPTY";
+                </div>`;
+            });
+            document.getElementById("clips").innerHTML = html;
+        } catch (e) { 
+            document.getElementById("clips").innerHTML = "<div style='color:#444;text-align:center;padding:20px;'>Sem vídeos na nuvem.</div>";
         }
     }
 
-    // 2. Verifica se o notebook (main.py) está ligado
-    async function statusLoad() {
-        const statusEl = document.getElementById("status");
-        try {
-            // Tentativa de conexão com o notebook local
-            const r = await fetch(`${API_LOCAL}/api/status`, { signal: AbortSignal.timeout(2000) });
-            if(r.ok) {
-                statusEl.innerHTML = '<span class="online">● ARENA CONECTADA</span>';
-            } else {
-                throw new Error();
-            }
-        } catch (e) {
-            statusEl.innerHTML = '<span class="offline">● NOTEBOOK OFFLINE</span>';
-        }
-    }
-
-    // 3. Envia o comando de gravar para o notebook
     async function gravar() {
         const btn = document.getElementById("saveBtn");
         btn.disabled = true;
         btn.innerText = "⏳ PROCESSANDO...";
-        btn.style.background = "#333";
 
         try {
-            const r = await fetch(`${API_LOCAL}/api/trigger`, { method: "POST" });
+            const r = await fetch(`${API}/api/trigger`, { method: "POST" });
             const j = await r.json();
-
             if (j.success) {
-                btn.innerText = "✅ GRAVADO COM SUCESSO!";
-                btn.style.background = "var(--primary)";
-                // Aguarda 5 segundos para o upload terminar e atualiza a lista
+                btn.innerText = "✅ GRAVADO!";
                 setTimeout(clipsLoad, 5000);
-            } else {
-                throw new Error();
             }
         } catch (e) {
-            btn.innerText = "❌ ERRO DE CONEXÃO";
-            btn.style.background = "var(--danger)";
-            alert("O site não conseguiu falar com o notebook no IP " + IP_NOTEBOOK + ". Verifique se o main.py está aberto e se você permitiu 'Conteúdo Inseguro' no navegador.");
+            alert("Erro ao conectar com a VPS (76.13.68.129). Verifique se a porta 8080 está aberta no firewall.");
         }
 
         setTimeout(() => {
             btn.disabled = false;
             btn.innerText = "⚽ GRAVAR LANCE";
-            btn.style.background = "";
-        }, 4000);
+        }, 5000);
     }
 
-    // Inicialização
     statusLoad();
     clipsLoad();
-
-    // Atualiza a lista da nuvem a cada 15 segundos
-    setInterval(clipsLoad, 15000);
-    // Atualiza status do notebook a cada 5 segundos
     setInterval(statusLoad, 5000);
 </script>
 
