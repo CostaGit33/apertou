@@ -3,88 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Apertou Gravou - Arena Jaguar</title>
+    <title>Apertou Gravou - Arena Online</title>
 
     <style>
-        :root {
-            --primary: #00ff84;
-            --danger: #ff4444;
-            --bg: #0a0a0a;
-            --card-bg: #111;
-            --border: #222;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
-        body { background: var(--bg); color: #fff; line-height: 1.5; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #0a0a0a; color: #fff; }
 
         header {
-            padding: 1rem 5%;
-            background: var(--card-bg);
+            padding: 18px;
+            background: #111;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            border-bottom: 1px solid #222;
         }
 
-        .logo { font-size: 1.25rem; font-weight: 900; color: var(--primary); letter-spacing: 1px; }
-        #status { font-size: 0.8rem; font-weight: bold; }
-        .online { color: var(--primary); }
-        .offline { color: var(--danger); }
+        .logo { font-size: 20px; font-weight: 900; color: #00ff84; letter-spacing: 1px; }
+        #status { font-size: 13px; font-weight: bold; }
+        .online { color: #00ff84; }
+        .offline { color: #ff4444; }
 
         main { max-width: 1000px; margin: auto; padding: 20px; }
+
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media(max-width: 768px) { .grid { grid-template-columns: 1fr; } }
 
-        .card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
-        .title { font-size: 0.9rem; font-weight: 800; margin-bottom: 15px; color: #aaa; text-transform: uppercase; }
+        .card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 20px; }
+        .title { font-size: 16px; font-weight: 800; margin-bottom: 15px; color: #aaa; text-transform: uppercase; }
 
         #saveBtn {
             width: 100%;
-            padding: 35px 20px;
+            padding: 40px 20px;
             border: none;
             border-radius: 14px;
-            font-size: 1.4rem;
+            font-size: 22px;
             font-weight: 900;
-            background: var(--primary);
+            background: #00ff84;
             color: #000;
             cursor: pointer;
             transition: 0.3s;
-            box-shadow: 0 0 20px rgba(0, 255, 132, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 132, 0.2);
         }
 
-        #saveBtn:disabled { opacity: 0.5; cursor: not-allowed; background: #333; }
+        #saveBtn:hover { transform: scale(1.01); background: #00db72; }
+        #saveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
         .box { background: #0d0d0d; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #1a1a1a; }
-        .box small { display: block; color: #666; font-size: 0.7rem; }
-        .box strong { font-size: 1.25rem; color: var(--primary); }
+        .box small { display: block; color: #666; font-size: 11px; margin-bottom: 4px; }
+        .box strong { font-size: 20px; color: #00ff84; }
 
-        .list { display: grid; gap: 10px; max-height: 550px; overflow-y: auto; }
+        .list { display: grid; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
         .item {
             background: #0d0d0d;
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 12px;
+            border-radius: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border: 1px solid #1a1a1a;
         }
 
-        .btn-view { 
-            padding: 8px 14px; background: #0070f3; color: #fff; 
-            border-radius: 8px; text-decoration: none; font-size: 0.75rem; font-weight: bold;
-        }
+        .item-info strong { display: block; font-size: 14px; }
+        .item-info span { font-size: 12px; color: #555; }
 
-        footer { padding: 40px 20px; text-align: center; color: #444; font-size: 0.75rem; }
+        .actions { display: flex; gap: 8px; }
+        .btn-mini {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+        }
+        .btn-view { background: #222; color: #fff; }
+        .btn-r2 { background: #0070f3; color: #fff; }
+
+        footer { padding: 30px; text-align: center; color: #444; font-size: 12px; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="logo">APERTOU GRAVOU <small>v6 VPS</small></div>
+    <div class="logo">APERTOU GRAVOU <small style="font-size: 10px; color: #555;">v6 ONLINE</small></div>
     <div id="status">● VERIFICANDO...</div>
 </header>
 
@@ -94,99 +97,98 @@
             <div class="title">Controle de Gravação</div>
             <button id="saveBtn" onclick="gravar()">⚽ GRAVAR LANCE</button>
             <div class="stats">
-                <div class="box"><small>STATUS VPS</small><strong id="vps-status">...</strong></div>
+                <div class="box"><small>BUFFER</small><strong id="buffer">0s</strong></div>
                 <div class="box"><small>TOTAL CLIPS</small><strong id="total">0</strong></div>
             </div>
         </div>
 
         <div class="card">
-            <div class="title">Últimos Replays (Nuvem R2)</div>
+            <div class="title">Últimos Replays</div>
             <div class="list" id="clips">Carregando...</div>
         </div>
     </div>
 </main>
 
-<footer>Arena Jaguar • Apertou Gravou</footer>
+<footer>Sistema Profissional • videos.semdominio.online</footer>
 
 <script>
-    // ─── CONFIGURAÇÃO ───────────────────────────────────────────────
-    // ⚠️  Edite apenas estas duas linhas se mudar de VPS ou bucket R2:
-    const IP_VPS        = "76.13.68.129";
-    const R2_PUBLIC_URL = "https://videos.semdominio.online/clips.json"; // ← mesma do config.json
-    // ────────────────────────────────────────────────────────────────
-
-    const API = `http://${IP_VPS}:8080`;
+    // IMPORTANTE: Se o site for HTTPS, a API deve ser o seu link do Cloudflare Tunnel ou IP com HTTPS
+    // Caso contrário, use o IP local do PC se estiver no mesmo Wi-Fi
+    const API = window.location.protocol === 'https:' 
+                ? "https://SUA-API-TÚNEL.com"  // <-- COLOQUE SEU TÚNEL AQUI
+                : "http://192.168.1.XX:8080"; // <-- COLOQUE O IP DO SEU PC AQUI
 
     async function statusLoad() {
-        const statusEl = document.getElementById("status");
         try {
-            const r = await fetch(`${API}/api/status`, { signal: AbortSignal.timeout(3000) });
-            if (r.ok) {
-                statusEl.innerHTML = '<span class="online">● VPS CONECTADA</span>';
-                document.getElementById("vps-status").innerText = "ONLINE";
-            }
+            const r = await fetch(`${API}/api/status`);
+            const j = await r.json();
+            document.getElementById("status").innerHTML = '<span class="online">● SISTEMA ONLINE</span>';
+            document.getElementById("buffer").innerText = (j.buffer_seconds || 0) + "s";
         } catch (e) {
-            statusEl.innerHTML = '<span class="offline">● VPS OFFLINE</span>';
-            document.getElementById("vps-status").innerText = "ERRO";
+            document.getElementById("status").innerHTML = '<span class="offline">● SISTEMA OFFLINE</span>';
         }
     }
 
     async function clipsLoad() {
         try {
-            const r = await fetch(`${R2_PUBLIC_URL}/clips.json?t=${Date.now()}`);
-            if (!r.ok) throw new Error("clips.json não encontrado");
+            const r = await fetch(`${API}/api/clips`);
             const list = await r.json();
             document.getElementById("total").innerText = list.length;
-
-            let html = list.length === 0
-                ? "<div style='color:#444;text-align:center;'>Nenhum vídeo ainda.</div>"
+            
+            let html = list.length === 0 
+                ? "<div style='color:#444; text-align:center; padding:20px;'>Nenhum replay gerado.</div>" 
                 : "";
 
             list.forEach(item => {
+                // Se o item não tiver URL do R2, usamos a URL local da API
+                const videoUrl = item.r2_url || `${API}${item.url}`;
                 html += `
                 <div class="item">
                     <div class="item-info">
-                        <strong>LANCE ${item.time}</strong>
-                        <span style="font-size:10px;color:#555;">Arena Jaguar</span>
+                        <strong>${item.created_at || 'Agora'}</strong>
+                        <span>Replay de Lance</span>
                     </div>
-                    <a href="${item.url}" target="_blank" class="btn-view">VER REPLAY</a>
+                    <div class="actions">
+                        <button class="btn-mini btn-view" onclick="window.open('${videoUrl}', '_blank')">VER</button>
+                    </div>
                 </div>`;
             });
             document.getElementById("clips").innerHTML = html;
-        } catch (e) {
-            document.getElementById("clips").innerHTML = "<div style='color:#444;text-align:center;'>Aguardando vídeos na nuvem...</div>";
-        }
+        } catch (e) { console.error("Erro clips:", e); }
     }
 
     async function gravar() {
         const btn = document.getElementById("saveBtn");
         btn.disabled = true;
         btn.innerText = "⏳ PROCESSANDO...";
+        btn.style.background = "#444";
 
         try {
             const r = await fetch(`${API}/api/trigger`, { method: "POST" });
             const j = await r.json();
+
             if (j.success) {
                 btn.innerText = "✅ GRAVADO!";
-                setTimeout(clipsLoad, 6000); // aguarda upload completar
+                btn.style.background = "#00ff84";
+                setTimeout(clipsLoad, 1000);
             } else {
-                btn.innerText = "❌ FALHOU";
+                throw new Error();
             }
         } catch (e) {
-            alert("Não foi possível conectar à VPS (" + IP_VPS + ":8080). Verifique o firewall.");
             btn.innerText = "❌ ERRO";
+            btn.style.background = "#ff4444";
         }
 
         setTimeout(() => {
             btn.disabled = false;
             btn.innerText = "⚽ GRAVAR LANCE";
-        }, 7000);
+            btn.style.background = "#00ff84";
+        }, 4000);
     }
 
     statusLoad();
     clipsLoad();
     setInterval(statusLoad, 5000);
-    setInterval(clipsLoad, 15000);
 </script>
 </body>
 </html>
