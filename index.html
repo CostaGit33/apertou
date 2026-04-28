@@ -3,192 +3,512 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Apertou Gravou - Arena Online</title>
-
+    <title>Apertou Gravou</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: #0a0a0a; color: #fff; }
+        :root {
+            color-scheme: dark;
+            --bg: #050816;
+            --panel: rgba(10, 17, 33, 0.92);
+            --panel-border: rgba(92, 240, 180, 0.16);
+            --text: #f4f7fb;
+            --muted: #8fa3bf;
+            --accent: #5cf0b4;
+            --accent-strong: #13c983;
+            --danger: #ff5d73;
+            --warning: #ffc857;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top, rgba(19, 201, 131, 0.22), transparent 35%),
+                linear-gradient(180deg, #0b1020 0%, #050816 100%);
+            color: var(--text);
+        }
+
+        main {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 24px;
+        }
 
         header {
-            padding: 18px;
-            background: #111;
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
+            gap: 16px;
+            padding: 24px 24px 10px;
             align-items: center;
-            border-bottom: 1px solid #222;
         }
 
-        .logo { font-size: 20px; font-weight: 900; color: #00ff84; letter-spacing: 1px; }
-        #status { font-size: 13px; font-weight: bold; }
-        .online { color: #00ff84; }
-        .offline { color: #ff4444; }
-
-        main { max-width: 1000px; margin: auto; padding: 20px; }
-
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media(max-width: 768px) { .grid { grid-template-columns: 1fr; } }
-
-        .card { background: #111; border: 1px solid #222; border-radius: 16px; padding: 20px; }
-        .title { font-size: 16px; font-weight: 800; margin-bottom: 15px; color: #aaa; text-transform: uppercase; }
-
-        #saveBtn {
-            width: 100%;
-            padding: 40px 20px;
-            border: none;
-            border-radius: 14px;
-            font-size: 22px;
+        .brand h1 {
+            font-size: clamp(28px, 4vw, 40px);
             font-weight: 900;
-            background: #00ff84;
-            color: #000;
-            cursor: pointer;
-            transition: 0.3s;
-            box-shadow: 0 0 20px rgba(0, 255, 132, 0.2);
+            letter-spacing: 0;
         }
 
-        #saveBtn:hover { transform: scale(1.01); background: #00db72; }
-        #saveBtn:disabled { opacity: 0.5; cursor: not-allowed; }
-
-        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-        .box { background: #0d0d0d; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #1a1a1a; }
-        .box small { display: block; color: #666; font-size: 11px; margin-bottom: 4px; }
-        .box strong { font-size: 20px; color: #00ff84; }
-
-        .list { display: grid; gap: 10px; max-height: 500px; overflow-y: auto; padding-right: 5px; }
-        .item {
-            background: #0d0d0d;
-            padding: 12px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid #1a1a1a;
+        .brand p {
+            color: var(--muted);
+            margin-top: 6px;
+            font-size: 14px;
         }
 
-        .item-info strong { display: block; font-size: 14px; }
-        .item-info span { font-size: 12px; color: #555; }
-
-        .actions { display: flex; gap: 8px; }
-        .btn-mini {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
+        .status-pill {
+            border: 1px solid var(--panel-border);
+            background: rgba(6, 10, 19, 0.78);
+            border-radius: 999px;
+            padding: 12px 16px;
+            font-size: 14px;
+            min-width: 220px;
             text-align: center;
         }
-        .btn-view { background: #222; color: #fff; }
-        .btn-r2 { background: #0070f3; color: #fff; }
 
-        footer { padding: 30px; text-align: center; color: #444; font-size: 12px; }
+        .layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+            gap: 18px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel h2 {
+            font-size: 15px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .record-button {
+            width: 100%;
+            min-height: 176px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+            color: #04110a;
+            font-size: clamp(24px, 5vw, 38px);
+            font-weight: 900;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+            box-shadow: 0 18px 50px rgba(19, 201, 131, 0.25);
+        }
+
+        .record-button:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .record-button:disabled {
+            opacity: 0.68;
+            cursor: wait;
+        }
+
+        .stats {
+            margin-top: 16px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .stat {
+            border: 1px solid rgba(143, 163, 191, 0.18);
+            background: rgba(4, 7, 14, 0.72);
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .stat small {
+            display: block;
+            color: var(--muted);
+            margin-bottom: 6px;
+            font-size: 11px;
+        }
+
+        .stat strong {
+            display: block;
+            font-size: 24px;
+        }
+
+        .network {
+            display: grid;
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .network label {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .network-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 10px;
+        }
+
+        input {
+            width: 100%;
+            height: 46px;
+            border: 1px solid rgba(143, 163, 191, 0.18);
+            border-radius: 8px;
+            padding: 0 14px;
+            background: rgba(2, 6, 15, 0.88);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        button.secondary,
+        a.secondary {
+            height: 46px;
+            border: 1px solid rgba(143, 163, 191, 0.18);
+            border-radius: 8px;
+            background: rgba(4, 7, 14, 0.82);
+            color: var(--text);
+            padding: 0 14px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .helper {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .clips {
+            display: grid;
+            gap: 12px;
+            max-height: 620px;
+            overflow: auto;
+        }
+
+        .clip {
+            border: 1px solid rgba(143, 163, 191, 0.18);
+            background: rgba(4, 7, 14, 0.78);
+            border-radius: 8px;
+            padding: 14px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .clip-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .clip-title strong {
+            display: block;
+            font-size: 15px;
+        }
+
+        .clip-title span {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .clip-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .message {
+            margin-top: 14px;
+            min-height: 20px;
+            font-size: 14px;
+        }
+
+        .ok { color: var(--accent); }
+        .warn { color: var(--warning); }
+        .error { color: var(--danger); }
+
+        video {
+            width: 100%;
+            border-radius: 8px;
+            background: #000;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 640px) {
+            main {
+                padding: 18px;
+            }
+
+            header {
+                padding: 18px 18px 8px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .network-row,
+            .clip-head {
+                grid-template-columns: 1fr;
+                display: grid;
+            }
+
+            .clip-actions {
+                width: 100%;
+            }
+
+            button.secondary,
+            a.secondary {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-
-<header>
-    <div class="logo">APERTOU GRAVOU <small style="font-size: 10px; color: #555;">v6 ONLINE</small></div>
-    <div id="status">● VERIFICANDO...</div>
-</header>
-
-<main>
-    <div class="grid">
-        <div class="card">
-            <div class="title">Controle de Gravação</div>
-            <button id="saveBtn" onclick="gravar()">⚽ GRAVAR LANCE</button>
-            <div class="stats">
-                <div class="box"><small>BUFFER</small><strong id="buffer">0s</strong></div>
-                <div class="box"><small>TOTAL CLIPS</small><strong id="total">0</strong></div>
-            </div>
+    <header>
+        <div class="brand">
+            <h1>Apertou Gravou</h1>
+            <p id="arenaLabel">Replay instantâneo com captura local e catálogo online.</p>
         </div>
+        <div class="status-pill" id="status">Verificando conexão local</div>
+    </header>
 
-        <div class="card">
-            <div class="title">Últimos Replays</div>
-            <div class="list" id="clips">Carregando...</div>
+    <main>
+        <div class="layout">
+            <section class="panel">
+                <h2>Controle de gravação</h2>
+                <button class="record-button" id="saveBtn" type="button">GRAVAR LANCE</button>
+
+                <div class="stats">
+                    <div class="stat">
+                        <small>BUFFER</small>
+                        <strong id="buffer">0s</strong>
+                    </div>
+                    <div class="stat">
+                        <small>CLIPES LOCAIS</small>
+                        <strong id="localTotal">0</strong>
+                    </div>
+                    <div class="stat">
+                        <small>CATÁLOGO ONLINE</small>
+                        <strong id="publicTotal">0</strong>
+                    </div>
+                </div>
+
+                <div class="network">
+                    <label for="apiInput">API local da máquina que grava</label>
+                    <div class="network-row">
+                        <input id="apiInput" type="text" placeholder="http://192.168.1.103:8080">
+                        <button class="secondary" id="saveApiBtn" type="button">Salvar API</button>
+                    </div>
+                    <p class="helper">
+                        O botão de gravar usa a API local na mesma rede. A lista de vídeos usa o catálogo público de
+                        <span id="publicHost">videos.semdominio.online</span>.
+                    </p>
+                </div>
+
+                <div class="message" id="message"></div>
+            </section>
+
+            <section class="panel">
+                <h2>Últimos replays</h2>
+                <div class="clips" id="clips"></div>
+            </section>
         </div>
-    </div>
-</main>
+    </main>
 
-<footer>Sistema Profissional • videos.semdominio.online</footer>
+    <script>
+        const STORAGE_KEY = "apertou_gravou_local_api";
+        const PUBLIC_INDEX_URL = `${window.location.origin}/clips.json`;
 
-<script>
-    // IMPORTANTE: Se o site for HTTPS, a API deve ser o seu link do Cloudflare Tunnel ou IP com HTTPS
-    // Caso contrário, use o IP local do PC se estiver no mesmo Wi-Fi
-    const API = window.location.protocol === 'https:' 
-                ? "https://SUA-API-TÚNEL.com"  // <-- COLOQUE SEU TÚNEL AQUI
-                : "http://192.168.1.XX:8080"; // <-- COLOQUE O IP DO SEU PC AQUI
+        const elements = {
+            arenaLabel: document.getElementById("arenaLabel"),
+            status: document.getElementById("status"),
+            buffer: document.getElementById("buffer"),
+            localTotal: document.getElementById("localTotal"),
+            publicTotal: document.getElementById("publicTotal"),
+            clips: document.getElementById("clips"),
+            apiInput: document.getElementById("apiInput"),
+            saveApiBtn: document.getElementById("saveApiBtn"),
+            saveBtn: document.getElementById("saveBtn"),
+            message: document.getElementById("message"),
+            publicHost: document.getElementById("publicHost")
+        };
 
-    async function statusLoad() {
-        try {
-            const r = await fetch(`${API}/api/status`);
-            const j = await r.json();
-            document.getElementById("status").innerHTML = '<span class="online">● SISTEMA ONLINE</span>';
-            document.getElementById("buffer").innerText = (j.buffer_seconds || 0) + "s";
-        } catch (e) {
-            document.getElementById("status").innerHTML = '<span class="offline">● SISTEMA OFFLINE</span>';
-        }
-    }
+        let localApiBase = resolveInitialApiBase();
 
-    async function clipsLoad() {
-        try {
-            const r = await fetch(`${API}/api/clips`);
-            const list = await r.json();
-            document.getElementById("total").innerText = list.length;
-            
-            let html = list.length === 0 
-                ? "<div style='color:#444; text-align:center; padding:20px;'>Nenhum replay gerado.</div>" 
-                : "";
-
-            list.forEach(item => {
-                // Se o item não tiver URL do R2, usamos a URL local da API
-                const videoUrl = item.r2_url || `${API}${item.url}`;
-                html += `
-                <div class="item">
-                    <div class="item-info">
-                        <strong>${item.created_at || 'Agora'}</strong>
-                        <span>Replay de Lance</span>
-                    </div>
-                    <div class="actions">
-                        <button class="btn-mini btn-view" onclick="window.open('${videoUrl}', '_blank')">VER</button>
-                    </div>
-                </div>`;
-            });
-            document.getElementById("clips").innerHTML = html;
-        } catch (e) { console.error("Erro clips:", e); }
-    }
-
-    async function gravar() {
-        const btn = document.getElementById("saveBtn");
-        btn.disabled = true;
-        btn.innerText = "⏳ PROCESSANDO...";
-        btn.style.background = "#444";
-
-        try {
-            const r = await fetch(`${API}/api/trigger`, { method: "POST" });
-            const j = await r.json();
-
-            if (j.success) {
-                btn.innerText = "✅ GRAVADO!";
-                btn.style.background = "#00ff84";
-                setTimeout(clipsLoad, 1000);
-            } else {
-                throw new Error();
+        function resolveInitialApiBase() {
+            const fromQuery = new URLSearchParams(window.location.search).get("api");
+            const fromStorage = window.localStorage.getItem(STORAGE_KEY);
+            if (fromQuery) {
+                window.localStorage.setItem(STORAGE_KEY, fromQuery);
+                return fromQuery.replace(/\/$/, "");
             }
-        } catch (e) {
-            btn.innerText = "❌ ERRO";
-            btn.style.background = "#ff4444";
+            if (fromStorage) {
+                return fromStorage.replace(/\/$/, "");
+            }
+            if (window.location.hostname === "localhost" || window.location.port === "8080") {
+                return window.location.origin.replace(/\/$/, "");
+            }
+            return "";
         }
 
-        setTimeout(() => {
-            btn.disabled = false;
-            btn.innerText = "⚽ GRAVAR LANCE";
-            btn.style.background = "#00ff84";
-        }, 4000);
-    }
+        function setMessage(text, kind = "") {
+            elements.message.className = `message ${kind}`.trim();
+            elements.message.textContent = text;
+        }
 
-    statusLoad();
-    clipsLoad();
-    setInterval(statusLoad, 5000);
-</script>
+        function setStatus(text, ok) {
+            elements.status.textContent = text;
+            elements.status.style.color = ok ? "#5cf0b4" : "#ff5d73";
+        }
+
+        function persistApiBase() {
+            const value = elements.apiInput.value.trim().replace(/\/$/, "");
+            localApiBase = value;
+            if (value) {
+                window.localStorage.setItem(STORAGE_KEY, value);
+                setMessage("API local salva. O botão já pode usar essa máquina na mesma rede.", "ok");
+            } else {
+                window.localStorage.removeItem(STORAGE_KEY);
+                setMessage("API local removida. O catálogo online continua disponível.", "warn");
+            }
+            refreshStatus();
+        }
+
+        async function fetchJson(url, options) {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            return response.json();
+        }
+
+        async function refreshStatus() {
+            elements.apiInput.value = localApiBase;
+            elements.publicHost.textContent = new URL(PUBLIC_INDEX_URL).host;
+
+            if (!localApiBase) {
+                setStatus("Configure a API local para habilitar a gravação", false);
+                elements.buffer.textContent = "0s";
+                elements.localTotal.textContent = "0";
+                return;
+            }
+
+            try {
+                const status = await fetchJson(`${localApiBase}/api/status`);
+                elements.buffer.textContent = `${status.buffer_seconds || 0}s`;
+                elements.localTotal.textContent = String(status.clips_saved || 0);
+                elements.arenaLabel.textContent = `${status.arena || "Arena"} • Captura local pronta e catálogo online sincronizado.`;
+                setStatus(`Sistema local online em ${localApiBase}`, true);
+            } catch (error) {
+                elements.buffer.textContent = "0s";
+                elements.localTotal.textContent = "0";
+                setStatus(`Sem resposta da API local em ${localApiBase}`, false);
+            }
+        }
+
+        function renderClips(items) {
+            elements.publicTotal.textContent = String(items.length);
+
+            if (!items.length) {
+                elements.clips.innerHTML = "<div class='helper'>Nenhum replay publicado ainda.</div>";
+                return;
+            }
+
+            elements.clips.innerHTML = items.map((item) => {
+                const url = item.r2_url || item.url || item.public_url || item.local_url;
+                const title = item.created_at || item.time || item.name;
+                const meta = item.size_mb ? `${item.size_mb} MB` : "Replay pronto";
+                return `
+                    <article class="clip">
+                        <div class="clip-head">
+                            <div class="clip-title">
+                                <strong>${title}</strong>
+                                <span>${meta}</span>
+                            </div>
+                            <div class="clip-actions">
+                                <a class="secondary" href="${url}" target="_blank" rel="noreferrer">Abrir</a>
+                            </div>
+                        </div>
+                        <video controls preload="metadata" src="${url}"></video>
+                    </article>
+                `;
+            }).join("");
+        }
+
+        async function refreshClips() {
+            try {
+                const clips = await fetchJson(PUBLIC_INDEX_URL, { cache: "no-store" });
+                renderClips(clips);
+            } catch (error) {
+                if (localApiBase) {
+                    try {
+                        const localClips = await fetchJson(`${localApiBase}/api/clips`, { cache: "no-store" });
+                        renderClips(localClips);
+                        return;
+                    } catch (localError) {
+                        elements.clips.innerHTML = "<div class='helper'>Não foi possível carregar os replays agora.</div>";
+                        return;
+                    }
+                }
+                elements.clips.innerHTML = "<div class='helper'>Não foi possível carregar os replays agora.</div>";
+            }
+        }
+
+        async function triggerRecord() {
+            if (!localApiBase) {
+                setMessage("Defina a API local antes de gravar.", "warn");
+                return;
+            }
+
+            elements.saveBtn.disabled = true;
+            elements.saveBtn.textContent = "PROCESSANDO";
+            setMessage("Gerando o replay e publicando no catálogo.", "warn");
+
+            try {
+                const response = await fetchJson(`${localApiBase}/api/trigger`, { method: "POST" });
+                const finalUrl = response.public_url || response.r2_url || response.local_url;
+                setMessage(`Replay salvo com sucesso. ${finalUrl ? "Ele já está disponível na lista." : ""}`, "ok");
+                await refreshStatus();
+                await refreshClips();
+            } catch (error) {
+                setMessage("A gravação não foi concluída. Verifique a API local e o buffer da câmera.", "error");
+            } finally {
+                elements.saveBtn.disabled = false;
+                elements.saveBtn.textContent = "GRAVAR LANCE";
+            }
+        }
+
+        elements.saveApiBtn.addEventListener("click", persistApiBase);
+        elements.saveBtn.addEventListener("click", triggerRecord);
+        elements.apiInput.addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+                persistApiBase();
+            }
+        });
+
+        refreshStatus();
+        refreshClips();
+        setInterval(refreshStatus, 5000);
+        setInterval(refreshClips, 15000);
+    </script>
 </body>
 </html>
