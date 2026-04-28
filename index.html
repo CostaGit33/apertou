@@ -446,7 +446,10 @@
             }
 
             elements.clips.innerHTML = items.map((item) => {
-                const url = item.r2_url || item.url || item.public_url || item.local_url;
+                const localUrl = localApiBase && item.local_url
+                    ? `${localApiBase}${item.local_url.startsWith("/") ? "" : "/"}${item.local_url}`
+                    : "";
+                const url = localUrl || item.r2_url || item.url || item.public_url || item.local_url;
                 const title = item.created_at || item.time || item.name;
                 const meta = item.size_mb ? `${item.size_mb} MB` : "Replay pronto";
                 return `
