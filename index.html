@@ -106,19 +106,22 @@
     </div>
 </main>
 
-<footer>Arena Jaguar • IP: 76.13.68.129 • R2 Storage Ativo</footer>
+<footer>Arena Jaguar • Apertou Gravou</footer>
 
 <script>
-    // --- CONFIGURAÇÃO DE REDE ---
-    const IP_VPS = "76.13.68.129"; // IP da sua VPS
+    // ─── CONFIGURAÇÃO ───────────────────────────────────────────────
+    // ⚠️  Edite apenas estas duas linhas se mudar de VPS ou bucket R2:
+    const IP_VPS        = "76.13.68.129";
+    const R2_PUBLIC_URL = "https://pub-172de93c1f6b4da4bd4279b3ee4148c8.r2.dev"; // ← mesma do config.json
+    // ────────────────────────────────────────────────────────────────
+
     const API = `http://${IP_VPS}:8080`;
-    const R2_PUBLIC_URL = "https://pub-172de93c1f6b4da4bd4279b3ee4148c8.r2.dev"; // URL do seu R2
 
     async function statusLoad() {
         const statusEl = document.getElementById("status");
         try {
             const r = await fetch(`${API}/api/status`, { signal: AbortSignal.timeout(3000) });
-            if(r.ok) {
+            if (r.ok) {
                 statusEl.innerHTML = '<span class="online">● VPS CONECTADA</span>';
                 document.getElementById("vps-status").innerText = "ONLINE";
             }
@@ -130,12 +133,15 @@
 
     async function clipsLoad() {
         try {
-            // Busca o arquivo JSON de índices que o main.py envia para o R2
             const r = await fetch(`${R2_PUBLIC_URL}/clips.json?t=${Date.now()}`);
+            if (!r.ok) throw new Error("clips.json não encontrado");
             const list = await r.json();
             document.getElementById("total").innerText = list.length;
-            
-            let html = list.length === 0 ? "<div style='color:#444;text-align:center;'>Nenhum vídeo.</div>" : "";
+
+            let html = list.length === 0
+                ? "<div style='color:#444;text-align:center;'>Nenhum vídeo ainda.</div>"
+                : "";
+
             list.forEach(item => {
                 html += `
                 <div class="item">
@@ -147,7 +153,7 @@
                 </div>`;
             });
             document.getElementById("clips").innerHTML = html;
-        } catch (e) { 
+        } catch (e) {
             document.getElementById("clips").innerHTML = "<div style='color:#444;text-align:center;'>Aguardando vídeos na nuvem...</div>";
         }
     }
@@ -162,17 +168,19 @@
             const j = await r.json();
             if (j.success) {
                 btn.innerText = "✅ GRAVADO!";
-                setTimeout(clipsLoad, 5000); // Aguarda 5s para o upload completar
+                setTimeout(clipsLoad, 6000); // aguarda upload completar
+            } else {
+                btn.innerText = "❌ FALHOU";
             }
         } catch (e) {
-            alert("Não foi possível conectar à VPS no IP " + IP_VPS + ". Verifique se a porta 8080 está liberada no Firewall.");
+            alert("Não foi possível conectar à VPS (" + IP_VPS + ":8080). Verifique o firewall.");
             btn.innerText = "❌ ERRO";
         }
 
         setTimeout(() => {
             btn.disabled = false;
             btn.innerText = "⚽ GRAVAR LANCE";
-        }, 5000);
+        }, 7000);
     }
 
     statusLoad();
